@@ -1,0 +1,25 @@
+[
+  {
+    "inventoryType": "MED",
+    "categoryType": "Standard Inventory",
+    "inventoryAccount": "Stock Account",
+    "taxCategory": "A",
+    "inventoryCode": "3055",
+    "description": "ABCHLOR CHLORAMPHENICOL EYE DROPS 10ML",
+    "hasAccompaniments": "No",
+    "hasModifiers": "No",
+    "isBatchedItem": "No",
+    "kitchenPrinter": "No",
+    "costPrice": "11.00",
+    "defaultBuyingUnits": "EACH",
+    "sellingPrice": "50.00",
+    "defaultSellingUnits": "EACH",
+    "conversionFactor": "1.00",
+    "buyingToSellingConversionFactor": "1.00",
+    "units": "EACH",
+    "reorderLevel": "0",
+    "barcode": "",
+    "alternativeCode": "",
+    "alternativeUnits": ""
+  }
+]

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Item Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function InventoryItemForm() {
+      const [inventoryList, setInventoryList] = useState([]);
+
+      const fetchInventory = async () => {
+        try {
+          const res = await axios.get('http://localhost:4000/api/inventory');
+          setInventoryList(res.data);
+          // Also sync localStorage
+          localStorage.setItem('inventoryList', JSON.stringify(res.data));
+        } catch (err) {
+          console.warn('Error fetching inventory from backend, falling back to localStorage:', err.message);
+          const stored = localStorage.getItem('inventoryList');
+          if (stored) {
+            try {
+              setInventoryList(JSON.parse(stored));
+            } catch (e) {
+              console.error('Error parsing localStorage inventoryList:', e);
+              setInventoryList([]);
+            }
+          } else {
+            setInventoryList([]);
+          }
+        }
+      };
+
+      useEffect(() => {
+        fetchInventory();
+      }, []);
+
+      const [formData, setFormData] = useState({
+        inventoryType: 'MED',
+        categoryType: 'Standard Inventory',
+        inventoryAccount: 'Stock Account',
+        taxCategory: 'A',
+        inventoryCode: '3055',
+        description: 'ABCHLOR CHLORAMPHENICOL EYE DROPS 10ML',
+        hasAccompaniments: 'No',
+        hasModifiers: 'No',
+        isBatchedItem: 'No',
+        kitchenPrinter: 'No',
+        costPrice: '11.00',
+        defaultBuyingUnits: 'EACH',
+        sellingPrice: '50.00',
+        defaultSellingUnits: 'EACH',
+        conversionFactor: '1.00',
+        buyingToSellingConversionFactor: '1.00',
+        units: 'EACH',
+        reorderLevel: '0',
+        barcode: '',
+        alternativeCode: '',
+        alternativeUnits: ''
+      });
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const newItem = { ...formData };
+        try {
+          const res = await axios.post('http://localhost:4000/api/inventory', formData);
+          alert('Inventory item saved!');
+          // After successful backend save, fetch updated list
+          fetchInventory();
+        } catch (err) {
+          console.warn('Error saving to backend, saving to localStorage instead:', err.message);
+          // Fallback: save to localStorage
+          const stored = localStorage.getItem('inventoryList');
+          let current = [];
+          if (stored) {
+            try {
+              current = JSON.parse(stored);
+            } catch (e) {
+              console.error('Error parsing localStorage inventoryList:', e);
+              current = [];
+            }
+          }
+          current.push(newItem);
+          localStorage.setItem('inventoryList', JSON.stringify(current));
+          setInventoryList(current);
+          alert('Saved locally (backend unreachable)');
+        }
+      };
+
+      return (
+        <div className="max-w-7xl mx-auto p-4">
+          <form onSubmit={handleSubmit} className="bg-white p-4 shadow rounded space-y-6">
+            <h2 className="text-xl font-bold text-blue-900">Product Details</h2>
+            <div className="flex gap-2">
+              <button type="button">🆕</button>
+              <button type="button">✏️</button>
+              <button type="submit">💾</button>
+              <button type="button">🔄</button>
+              <button type="button">❌</button>
+              <button type="button">🔍</button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <label className="block">Inventory Type</label>
+                <input type="text" name="inventoryType" value={formData.inventoryType} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Category Type</label>
+                <input type="text" name="categoryType" value={formData.categoryType} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Inventory Account</label>
+                <input type="text" name="inventoryAccount" value={formData.inventoryAccount} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Tax Category</label>
+                <input type="text" name="taxCategory" value={formData.taxCategory} onChange={handleChange} className="w-full border p-1" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block">Inventory Code</label>
+                <input type="text" name="inventoryCode" value={formData.inventoryCode} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div className="col-span-2">
+                <label className="block">Description</label>
+                <input type="text" name="description" value={formData.description} onChange={handleChange} className="w-full border p-1" />
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded">
+              <h3 className="text-blue-900 font-semibold mb-2">Product Settings</h3>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <label className="block">Has Accompaniments</label>
+                  <select name="hasAccompaniments" value={formData.hasAccompaniments} onChange={handleChange} className="w-full border p-1">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block">Has Modifiers</label>
+                  <select name="hasModifiers" value={formData.hasModifiers} onChange={handleChange} className="w-full border p-1">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block">Batched Item</label>
+                  <select name="isBatchedItem" value={formData.isBatchedItem} onChange={handleChange} className="w-full border p-1">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block">Kitchen Printer</label>
+                  <select name="kitchenPrinter" value={formData.kitchenPrinter} onChange={handleChange} className="w-full border p-1">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <label className="block">Cost/Buying Price</label>
+                <input type="text" name="costPrice" value={formData.costPrice} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Default Buying Units</label>
+                <input type="text" name="defaultBuyingUnits" value={formData.defaultBuyingUnits} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Marked/Selling Price</label>
+                <input type="text" name="sellingPrice" value={formData.sellingPrice} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Default Selling Units</label>
+                <input type="text" name="defaultSellingUnits" value={formData.defaultSellingUnits} onChange={handleChange} className="w-full border p-1" />
+              </div>
+            </div>
+            <div>
+
+  <div>
+  <label className="block mb-1 font-medium">Buying Units to Selling Units Conversion Factor</label>
+  <div className="flex items-end gap-2">
+    <input type="text" name="buyingToSellingConversionFactor" value={formData.buyingToSellingConversionFactor} onChange={handleChange} className="border p-1 w-28" />
+    <span className="text-center font-medium">Units</span>
+    <input type="text" name="units" value={formData.units} onChange={handleChange} className="border p-1 w-24" />
+    <span className="text-center font-medium">=</span>
+    <input type="text" disabled value="1" className="border p-1 w-16 bg-gray-100 text-center" />
+    <span className="text-center font-medium">Units</span>
+    <input type="text" name="defaultSellingUnits" value={formData.defaultSellingUnits} onChange={handleChange} className="border p-1 w-24" />
+  </div>
+</div>
+</div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block">Barcode</label>
+                <input type="text" name="barcode" value={formData.barcode} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Re-Order Level</label>
+                <input type="text" name="reorderLevel" value={formData.reorderLevel} onChange={handleChange} className="w-full border p-1" />
+              </div>
+              <div>
+                <label className="block">Alternative Units of Measure</label>
+                <input type="text" name="alternativeUnits" value={formData.alternativeUnits} onChange={handleChange} className="w-full border p-1" />
+              </div>
+            </div>
+
+</form>
+
+          <div className="mt-8">
+            {/* Debug: Show raw inventoryList data */}
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">Saved Inventory Items</h2>
+            <div className="overflow-auto">
+              {inventoryList.length === 0 ? (
+                <p className="text-gray-500 italic">No inventory items found.</p>
+              ) : (
+                <table className="min-w-full table-auto border border-gray-300 bg-white">
+                  <thead>
+                    <tr className="bg-gray-200 text-left">
+                      <th className="p-2 border">Code</th>
+                      <th className="p-2 border">Description</th>
+                      <th className="p-2 border">Type</th>
+                      <th className="p-2 border">Category</th>
+                      <th className="p-2 border">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventoryList.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50 bg-white even:bg-gray-100 text-sm">
+                        <td className="p-2 border">{item.inventoryCode || '—'}</td>
+                        <td className="p-2 border">{item.description || '—'}</td>
+                        <td className="p-2 border">{item.inventoryType || '—'}</td>
+                        <td className="p-2 border">{item.categoryType || '—'}</td>
+                        <td className="p-2 border">{item.sellingPrice || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+       ReactDOM.render(<InventoryItemForm />, document.getElementById('root'));
+  </script>
+</body>
+</html>
