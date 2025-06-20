@@ -2,27 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 const DB_FILE = './inventory.json';
 
 app.use(cors());
 app.use(express.json());
 
-// Load inventory
 const loadInventory = () => {
   if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, '[]');
   return JSON.parse(fs.readFileSync(DB_FILE));
 };
 
-// Save inventory
 const saveInventory = (data) => {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 };
 
-// Routes
 app.get('/api/inventory', (req, res) => {
-  const data = loadInventory();
-  res.json(data);
+  res.json(loadInventory());
 });
 
 app.post('/api/inventory', (req, res) => {
@@ -34,5 +30,5 @@ app.post('/api/inventory', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Backend running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
